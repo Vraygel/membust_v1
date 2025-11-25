@@ -354,7 +354,22 @@
         </div>
     </div>
 
-    <script>
+    <!-- После continueScreen добавим новый экран -->
+<div id="continueScreen2" class="training-screen continue-screen" style="display: none;">
+    <h2 class="continue-title">Второй этап завершен! 🎉</h2>
+    <div style="margin: 30px 0;">
+        <div style="font-size: 3rem; margin-bottom: 20px;">🔄</div>
+        <p style="color: #008080; font-size: 1.2rem; margin-bottom: 30px; line-height: 1.5;">
+            Правильных ответов: <strong id="stage2Result">0 из 0</strong><br>
+            Готовы к финальному этапу?
+        </p>
+    </div>
+    <button class="btn" onclick="startThirdStage()" style="padding: 15px 40px; font-size: 1.1rem;">
+        🔄 Начать финальный этап
+    </button>
+</div>
+
+    <!-- <script>
         const API_URL = 'https://memboost.ru/api';
         let jwt = '';
         
@@ -779,6 +794,591 @@
             clearAllTimers();
             window.location.href = 'main.html';
         }
-    </script>
+    </script> -->
+
+    <script>
+    const API_URL = 'https://memboost.ru/api';
+    let jwt = '';
+    
+    let foreignSlots = Array(5).fill(null);
+    let translationSlots = Array(5).fill(null);
+    
+    let gameState = {
+        totalWords: 0,
+        wordsLeft: 0,
+        correctAnswers: 0,
+        selectedForeignSlot: null,
+        selectedTranslationSlot: null
+    };
+
+    let allTrainingWords = [];
+    let availableWords = [];
+    let activeTimers = [];
+    let currentStage = 1; // 1 - первый этап, 2 - второй этап, 3 - третий этап
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM загружен, инициализация...');
+        jwt = localStorage.getItem('jwt');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!jwt) {
+            console.error('JWT не найден, перенаправление на index.html');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        document.getElementById('userName').textContent = user.username || 'Пользователь';
+        console.log('Пользователь:', user.username);
+        startTraining();
+    });
+
+    function clearAllTimers() {
+        activeTimers.forEach(timerId => clearTimeout(timerId));
+        activeTimers = [];
+    }
+
+    async function startTraining() {
+        console.log('startTraining вызвана');
+        
+        try {
+            const selectedWordsJSON = sessionStorage.getItem('selectedTrainingWords');
+            console.log('selectedWordsJSON из sessionStorage:', selectedWordsJSON);
+            
+            if (selectedWordsJSON) {
+                allTrainingWords = JSON.parse(selectedWordsJSON);
+                console.log('Слова успешно распарсены, количество:', allTrainingWords.length);
+                
+                // Очищаем sessionStorage после получения данных
+                sessionStorage.removeItem('selectedTrainingWords');
+                
+                if (allTrainingWords.length === 0) {
+                    console.error('Массив слов пуст');
+                    alert('Не выбрано ни одного слова для тренировки');
+                    goBack();
+                    return;
+                }
+
+                // Проверяем структуру данных
+                console.log('Первое слово для проверки структуры:', allTrainingWords[0]);
+                
+                availableWords = [...allTrainingWords];
+                console.log('availableWords создан, длина:', availableWords.length);
+
+                gameState = {
+                    totalWords: allTrainingWords.length,
+                    wordsLeft: allTrainingWords.length,
+                    correctAnswers: 0,
+                    selectedForeignSlot: null,
+                    selectedTranslationSlot: null
+                };
+
+                foreignSlots = Array(5).fill(null);
+                translationSlots = Array(5).fill(null);
+
+                console.log('Инициализация завершена, скрываем загрузку...');
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('gameScreen').style.display = 'block';
+                
+                fillInitialSlots();
+
+            } else {
+                console.error('selectedTrainingWords не найден в sessionStorage');
+                alert('Слова для тренировки не найдены. Вернитесь к выбору слов.');
+                goBack();
+            }
+        } catch (error) {
+            console.error('Критическая ошибка в startTraining:', error);
+            alert('Ошибка загрузки слов для тренировки: ' + error.message);
+            goBack();
+        }
+    }
+
+    function fillInitialSlots() {
+        console.log('fillInitialSlots вызвана, currentStage:', currentStage);
+        console.log('availableWords длина:', availableWords.length);
+        
+        const initialWords = availableWords.splice(0, Math.min(5, availableWords.length));
+        console.log('initialWords выбрано:', initialWords.length);
+        
+        if (currentStage === 1 || currentStage === 2) {
+            // Первый и второй этап - стандартное заполнение
+            initialWords.forEach((word, index) => {
+                foreignSlots[index] = {
+                    id: word.id,
+                    text: word.attributes.foreign_word,
+                    audio: word.attributes.audio?.data,
+                    slotIndex: index
+                };
+            });
+
+            const translations = [...initialWords].map(word => ({
+                id: word.id,
+                text: word.attributes.translation
+            }));
+            
+            shuffleArray(translations);
+            
+            translations.forEach((translation, index) => {
+                translationSlots[index] = {
+                    id: translation.id,
+                    text: translation.text,
+                    slotIndex: index
+                };
+            });
+        } else {
+            // Третий этап - инвертированное заполнение
+            initialWords.forEach((word, index) => {
+                foreignSlots[index] = {
+                    id: word.id,
+                    text: word.attributes.translation, // В левой колонке теперь переводы
+                    slotIndex: index
+                };
+            });
+
+            const foreignWords = [...initialWords].map(word => ({
+                id: word.id,
+                text: word.attributes.foreign_word, // В правой колонке теперь иностранные слова
+                audio: word.attributes.audio?.data
+            }));
+            
+            shuffleArray(foreignWords);
+            
+            foreignWords.forEach((foreignWord, index) => {
+                translationSlots[index] = {
+                    id: foreignWord.id,
+                    text: foreignWord.text,
+                    audio: foreignWord.audio,
+                    slotIndex: index
+                };
+            });
+        }
+
+        console.log('foreignSlots после заполнения:', foreignSlots);
+        console.log('translationSlots после заполнения:', translationSlots);
+        
+        updateDisplay();
+        updateProgress();
+    }
+
+    function updateDisplay() {
+        console.log('updateDisplay вызвана');
+        
+        const foreignContainer = document.getElementById('foreignWords');
+        const translationContainer = document.getElementById('translationWords');
+        
+        foreignContainer.innerHTML = '';
+        translationContainer.innerHTML = '';
+
+        // Отображаем левую колонку (в третьем этапе - переводы)
+        foreignSlots.forEach((word, index) => {
+            const slot = document.createElement('div');
+            
+            if (currentStage === 2) {
+                slot.className = 'word-card audio-card';
+            } else {
+                slot.className = 'word-card';
+            }
+            
+            slot.dataset.slotIndex = index;
+            slot.dataset.type = 'foreign';
+            
+            if (word) {
+                if (currentStage === 2) {
+                    // Второй этап - показываем заглушку для аудио
+                    slot.innerHTML = `
+                        <div style="font-size: 2rem; margin-bottom: 10px;">🔊</div>
+                        <div style="font-size: 0.9rem;">Нажмите чтобы прослушать</div>
+                    `;
+                } else {
+                    // Первый и третий этап - показываем текст
+                    slot.textContent = word.text;
+                    if (word.audio && currentStage === 1) {
+                        const audioIndicator = document.createElement('div');
+                        audioIndicator.className = 'audio-indicator';
+                        audioIndicator.textContent = '🔊';
+                        audioIndicator.style.marginTop = '5px';
+                        slot.appendChild(audioIndicator);
+                    }
+                }
+                slot.dataset.wordId = word.id;
+                slot.addEventListener('click', () => handleWordClick(index, 'foreign'));
+            } else {
+                if (availableWords.length === 0) {
+                    slot.textContent = '—';
+                    slot.classList.add('inactive');
+                } else {
+                    slot.style.visibility = 'hidden';
+                }
+            }
+            
+            foreignContainer.appendChild(slot);
+        });
+
+        // Отображаем правую колонку
+        translationSlots.forEach((word, index) => {
+            const slot = document.createElement('div');
+            slot.className = 'word-card';
+            slot.dataset.slotIndex = index;
+            slot.dataset.type = 'translation';
+            
+            if (word) {
+                slot.textContent = word.text;
+                
+                // В третьем этапе добавляем аудио-индикатор к иностранным словам в правой колонке
+                if (word.audio && currentStage === 3) {
+                    const audioIndicator = document.createElement('div');
+                    audioIndicator.className = 'audio-indicator';
+                    audioIndicator.textContent = '🔊';
+                    audioIndicator.style.marginTop = '5px';
+                    slot.appendChild(audioIndicator);
+                }
+                
+                slot.dataset.wordId = word.id;
+                slot.addEventListener('click', () => handleWordClick(index, 'translation'));
+            } else {
+                if (availableWords.length === 0) {
+                    slot.textContent = '—';
+                    slot.classList.add('inactive');
+                } else {
+                    slot.style.visibility = 'hidden';
+                }
+            }
+            
+            translationContainer.appendChild(slot);
+        });
+        
+        console.log('Display обновлен');
+    }
+
+    function handleWordClick(slotIndex, type) {
+        console.log('Клик по слову:', type, 'слот:', slotIndex);
+        clearAllTimers();
+        resetIncorrectSelection();
+
+        if (type === 'foreign') {
+            const word = foreignSlots[slotIndex];
+            if (!word) return;
+
+            // Проигрываем аудио только в первом и втором этапе при клике на левую колонку
+            if (currentStage === 1 || currentStage === 2) {
+                playWordAudio(word.id);
+            }
+            
+            if (gameState.selectedForeignSlot !== null) {
+                const prevElement = document.querySelector(`.word-card[data-slot-index="${gameState.selectedForeignSlot}"][data-type="foreign"]`);
+                if (prevElement) prevElement.classList.remove('selected');
+            }
+            
+            gameState.selectedForeignSlot = slotIndex;
+            const currentElement = document.querySelector(`.word-card[data-slot-index="${slotIndex}"][data-type="foreign"]`);
+            currentElement.classList.add('selected');
+            
+        } else {
+            const word = translationSlots[slotIndex];
+            if (!word) return;
+
+            // В третьем этапе проигрываем аудио при клике на правую колонку (иностранные слова)
+            if (currentStage === 3) {
+                playWordAudio(word.id);
+            }
+
+            if (gameState.selectedTranslationSlot !== null) {
+                const prevElement = document.querySelector(`.word-card[data-slot-index="${gameState.selectedTranslationSlot}"][data-type="translation"]`);
+                if (prevElement) prevElement.classList.remove('selected');
+            }
+            
+            gameState.selectedTranslationSlot = slotIndex;
+            const currentElement = document.querySelector(`.word-card[data-slot-index="${slotIndex}"][data-type="translation"]`);
+            currentElement.classList.add('selected');
+
+            if (gameState.selectedForeignSlot !== null) {
+                checkWordPair(gameState.selectedForeignSlot, gameState.selectedTranslationSlot);
+            }
+        }
+    }
+
+    function playWordAudio(wordId) {
+        const word = allTrainingWords.find(w => w.id === wordId);
+        if (word && word.attributes.audio?.data) {
+            const audioUrl = `https://memboost.ru${word.attributes.audio.data.attributes.url}`;
+            console.log('Воспроизведение аудио:', audioUrl);
+            const audio = new Audio(audioUrl);
+            audio.play().catch(error => {
+                console.log('Не удалось воспроизвести аудио:', error);
+            });
+        } else {
+            console.log('Аудио не найдено для слова:', wordId);
+        }
+    }
+
+    function resetIncorrectSelection() {
+        document.querySelectorAll('.word-card.incorrect').forEach(element => {
+            element.classList.remove('incorrect');
+        });
+    }
+
+    function checkWordPair(foreignSlotIndex, translationSlotIndex) {
+        console.log('Проверка пары:', foreignSlotIndex, translationSlotIndex);
+        
+        const foreignWord = foreignSlots[foreignSlotIndex];
+        const translationWord = translationSlots[translationSlotIndex];
+
+        if (!foreignWord || !translationWord) {
+            console.error('Одно из слов не найдено');
+            return;
+        }
+
+        const isCorrect = foreignWord.id === translationWord.id;
+        console.log('Проверка ID:', foreignWord.id, 'vs', translationWord.id, 'результат:', isCorrect);
+
+        const foreignElement = document.querySelector(`.word-card[data-slot-index="${foreignSlotIndex}"][data-type="foreign"]`);
+        const translationElement = document.querySelector(`.word-card[data-slot-index="${translationSlotIndex}"][data-type="translation"]`);
+
+        if (isCorrect) {
+            if (currentStage === 2) {
+                // Во втором этапе показываем слово на 0.1 секунды
+                showWordTemporarily(foreignElement, foreignWord.text);
+            }
+            
+            foreignElement.classList.add('correct');
+            translationElement.classList.add('correct');
+            
+            gameState.correctAnswers++;
+            gameState.wordsLeft--;
+
+            setTimeout(() => {
+                foreignSlots[foreignSlotIndex] = null;
+                translationSlots[translationSlotIndex] = null;
+                
+                resetSelection();
+                
+                if (availableWords.length > 0) {
+                    reshuffleAndRefillSlots();
+                } else {
+                    updateDisplay();
+                }
+                
+                updateProgress();
+            }, currentStage === 1 ? 500 : 100);
+
+        } else {
+            foreignElement.classList.add('incorrect');
+            translationElement.classList.add('incorrect');
+
+            const timerId = setTimeout(() => {
+                foreignElement.classList.remove('incorrect', 'selected');
+                translationElement.classList.remove('incorrect', 'selected');
+                resetSelection();
+            }, 1000);
+            
+            activeTimers.push(timerId);
+        }
+    }
+
+    function showWordTemporarily(element, wordText) {
+        const originalHTML = element.innerHTML;
+        const originalClasses = element.className;
+        
+        // Показываем слово
+        element.textContent = wordText;
+        element.className = 'word-card quick-word';
+        
+        // Возвращаем заглушку через 100ms
+        setTimeout(() => {
+            element.innerHTML = originalHTML;
+            element.className = originalClasses + ' selected';
+        }, 100);
+    }
+
+    function reshuffleAndRefillSlots() {
+        console.log('reshuffleAndRefillSlots вызвана');
+        
+        const activeForeignWords = foreignSlots.filter(slot => slot !== null);
+        const activeTranslationWords = translationSlots.filter(slot => slot !== null);
+        
+        const activeWordIds = new Set();
+        activeForeignWords.forEach(word => activeWordIds.add(word.id));
+        activeTranslationWords.forEach(word => activeWordIds.add(word.id));
+        
+        const newWords = [];
+        while (activeForeignWords.length + newWords.length < 5 && availableWords.length > 0) {
+            const word = availableWords.shift();
+            if (!activeWordIds.has(word.id)) {
+                newWords.push(word);
+                activeWordIds.add(word.id);
+            }
+        }
+        
+        let allForeignWords = [...activeForeignWords];
+        let allTranslations = [...activeTranslationWords];
+        
+        newWords.forEach(word => {
+            if (currentStage === 1 || currentStage === 2) {
+                // Стандартное заполнение для первого и второго этапа
+                allForeignWords.push({
+                    id: word.id,
+                    text: word.attributes.foreign_word,
+                    audio: word.attributes.audio?.data
+                });
+                
+                allTranslations.push({
+                    id: word.id,
+                    text: word.attributes.translation
+                });
+            } else {
+                // Инвертированное заполнение для третьего этапа
+                allForeignWords.push({
+                    id: word.id,
+                    text: word.attributes.translation
+                });
+                
+                allTranslations.push({
+                    id: word.id,
+                    text: word.attributes.foreign_word,
+                    audio: word.attributes.audio?.data
+                });
+            }
+        });
+        
+        shuffleArray(allForeignWords);
+        shuffleArray(allTranslations);
+        
+        foreignSlots = Array(5).fill(null);
+        translationSlots = Array(5).fill(null);
+        
+        for (let i = 0; i < Math.min(5, allForeignWords.length); i++) {
+            foreignSlots[i] = allForeignWords[i];
+        }
+        
+        for (let i = 0; i < Math.min(5, allTranslations.length); i++) {
+            translationSlots[i] = allTranslations[i];
+        }
+        
+        updateDisplay();
+    }
+
+    function resetSelection() {
+        gameState.selectedForeignSlot = null;
+        gameState.selectedTranslationSlot = null;
+    }
+
+    function updateProgress() {
+        document.getElementById('wordsLeft').textContent = gameState.wordsLeft;
+        document.getElementById('correctCount').textContent = gameState.correctAnswers;
+        document.getElementById('totalCount').textContent = gameState.totalWords;
+
+        const allSlotsEmpty = foreignSlots.every(slot => slot === null) && 
+                             translationSlots.every(slot => slot === null);
+        
+        console.log('allSlotsEmpty:', allSlotsEmpty, 'availableWords:', availableWords.length);
+        
+        if (allSlotsEmpty && availableWords.length === 0) {
+            console.log('Этап завершен, currentStage:', currentStage);
+            if (currentStage === 1) {
+                finishFirstStage();
+            } else if (currentStage === 2) {
+                finishSecondStage();
+            } else {
+                finishThirdStage();
+            }
+        }
+    }
+
+    function finishFirstStage() {
+        console.log('Завершение первого этапа');
+        document.getElementById('stage1Result').textContent = 
+            `${gameState.correctAnswers} из ${gameState.totalWords}`;
+        
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('continueScreen').style.display = 'block';
+    }
+
+    function startSecondStage() {
+        console.log('Старт второго этапа');
+        currentStage = 2;
+        
+        availableWords = [...allTrainingWords];
+        gameState = {
+            totalWords: allTrainingWords.length,
+            wordsLeft: allTrainingWords.length,
+            correctAnswers: 0,
+            selectedForeignSlot: null,
+            selectedTranslationSlot: null
+        };
+
+        foreignSlots = Array(5).fill(null);
+        translationSlots = Array(5).fill(null);
+
+        document.getElementById('continueScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'block';
+        
+        document.getElementById('foreignTitle').textContent = 'Аудио слова';
+        
+        fillInitialSlots();
+    }
+
+    function finishSecondStage() {
+        console.log('Завершение второго этапа');
+        document.getElementById('stage2Result').textContent = 
+            `${gameState.correctAnswers} из ${gameState.totalWords}`;
+        
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('continueScreen2').style.display = 'block';
+    }
+
+    function startThirdStage() {
+        console.log('Старт третьего этапа');
+        currentStage = 3;
+        
+        availableWords = [...allTrainingWords];
+        gameState = {
+            totalWords: allTrainingWords.length,
+            wordsLeft: allTrainingWords.length,
+            correctAnswers: 0,
+            selectedForeignSlot: null,
+            selectedTranslationSlot: null
+        };
+
+        foreignSlots = Array(5).fill(null);
+        translationSlots = Array(5).fill(null);
+
+        document.getElementById('continueScreen2').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'block';
+        
+        // Меняем заголовки для третьего этапа
+        document.getElementById('foreignTitle').textContent = 'Переводы';
+        
+        fillInitialSlots();
+    }
+
+    function finishThirdStage() {
+        console.log('Завершение третьего этапа');
+        const successRate = Math.round((gameState.correctAnswers / gameState.totalWords) * 100);
+        
+        alert(`Тренировка полностью завершена! 🎉\n\nСтатистика:\n- Первый этап: ${allTrainingWords.length} слов\n- Второй этап: ${allTrainingWords.length} слов\n- Третий этап: ${gameState.correctAnswers} из ${gameState.totalWords} правильных ответов\n\nОбщая успешность: ${successRate}%`);
+        
+        // Возвращаем к словарям через 2 секунды
+        setTimeout(() => {
+            goBack();
+        }, 2000);
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function goBack() {
+        console.log('Возврат к словарям');
+        clearAllTimers();
+        // Сбрасываем этап на первый при возврате
+        currentStage = 1;
+        window.location.href = 'main.html';
+    }
+</script>
+
 </body>
 </html>
