@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memboost - Тренировка сопоставления</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #F1F5D8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #B9FFAF;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            color: #006767;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #008080;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: #008080;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #006767;
+            transform: translateY(-2px);
+        }
+
+        .training-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .training-screen {
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .setup-screen {
+            text-align: center;
+        }
+
+        .setup-title {
+            color: #006767;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #008080;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #B9FFAF;
+            border-radius: 12px;
+            background: #F1F5D8;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #97FA9A;
+            background: white;
+        }
+
+        .words-count {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .count-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #B9FFAF;
+            background: white;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .count-btn:hover {
+            background: #F1F5D8;
+        }
+
+        .count-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #006767;
+            min-width: 40px;
+        }
+
+        .game-screen {
+            display: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #B9FFAF;
+        }
+
+        .progress-info {
+            color: #008080;
+            font-size: 1.1rem;
+        }
+
+        .game-field {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .words-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .column-title {
+            text-align: center;
+            color: #006767;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .word-card {
+            background: #F1F5D8;
+            padding: 25px;
+            border-radius: 15px;
+            border: 3px solid #B9FFAF;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .word-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: #97FA9A;
+        }
+
+        .word-card.selected {
+            border-color: #008080;
+            background: #D6FFC1;
+            transform: scale(1.05);
+        }
+
+        .word-card.correct {
+            border-color: #97FA9A;
+            background: #97FA9A;
+            color: #006767;
+            animation: disappear 0.5s ease forwards;
+        }
+
+        .word-card.incorrect {
+            border-color: #FF6B6B;
+            background: #FF6B6B;
+            color: white;
+        }
+
+        @keyframes disappear {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0);
+                display: none;
+                height: 0;
+                padding: 0;
+                margin: 0;
+                border: none;
+            }
+        }
+
+        .new-words-timer {
+            text-align: center;
+            padding: 25px;
+            background: #279E9D;
+            color: white;
+            border-radius: 15px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .timer-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .audio-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .training-container {
+                padding: 20px;
+            }
+            .game-field {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .word-card {
+                min-height: 80px;
+                padding: 20px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo">📚</div>
+                <h1>Memboost - Сопоставление слов</h1>
+            </div>
+            <div class="user-info">
+                <span id="userName">Пользователь</span>
+                <button class="btn" onclick="goBack()">← Назад к словарям</button>
+            </div>
+        </div>
+
+        <div class="training-container">
+            <div id="setupScreen" class="training-screen setup-screen">
+                <h2 class="setup-title">Настройка тренировки</h2>
+                
+                <div class="form-group">
+                    <label>Количество слов для повторения:</label>
+                    <div class="words-count">
+                        <button class="count-btn" onclick="changeWordCount(-5)">-</button>
+                        <div class="count-display" id="wordCount">20</div>
+                        <button class="count-btn" onclick="changeWordCount(5)">+</button>
+                    </div>
+                    <small style="color: #008080; display: block; margin-top: 8px;">
+                        Выберите от 10 до 50 слов для тренировки
+                    </small>
+                </div>
+
+                <button class="btn" onclick="startTraining()" style="padding: 15px 40px; font-size: 1.1rem;">
+                    🎯 Начать тренировку
+                </button>
+            </div>
+
+            <div id="gameScreen" class="training-screen game-screen">
+                <div class="game-header">
+                    <div class="progress-info">
+                        Слов осталось: <span id="wordsLeft">0</span>
+                    </div>
+                    <div class="progress-info">
+                        Правильно: <span id="correctCount">0</span>/<span id="totalCount">0</span>
+                    </div>
+                </div>
+
+                <div class="game-field">
+                    <div class="words-column">
+                        <div class="column-title">Иностранные слова</div>
+                        <div id="foreignWords" class="words-column">
+                            <!-- Слова будут здесь -->
+                        </div>
+                    </div>
+                    
+                    <div class="words-column">
+                        <div class="column-title">Переводы</div>
+                        <div id="translationWords" class="words-column">
+                            <!-- Переводы будут здесь -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="newWordsTimer" class="new-words-timer">
+                    <div class="timer-text">Новые слова появятся через:</div>
+                    <div class="timer-display" id="timerDisplay">10</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://memboost.ru/api';
+        let jwt = '';
+        let currentDictionaryId = null;
+        let allTrainingWords = [];
+        let availableWords = [];
+        
+        // Слоты для 5 иностранных слов и 5 переводов
+        let foreignSlots = Array(5).fill(null);
+        let translationSlots = Array(5).fill(null);
+        
+        let gameState = {
+            totalWords: 0,
+            wordsLeft: 0,
+            correctAnswers: 0,
+            selectedForeignSlot: null,
+            selectedTranslationSlot: null
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            jwt = localStorage.getItem('jwt');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (!jwt) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            currentDictionaryId = urlParams.get('dict');
+            if (!currentDictionaryId) {
+                alert('Словарь не выбран');
+                window.location.href = 'main.html';
+                return;
+            }
+
+            document.getElementById('userName').textContent = user.username || 'Пользователь';
+        });
+
+        function changeWordCount(change) {
+            const countElement = document.getElementById('wordCount');
+            let currentCount = parseInt(countElement.textContent);
+            let newCount = currentCount + change;
+            
+            if (newCount >= 10 && newCount <= 50) {
+                countElement.textContent = newCount;
+            }
+        }
+
+        async function startTraining() {
+            const wordCount = parseInt(document.getElementById('wordCount').textContent);
+            
+            try {
+                const response = await fetch(
+                    `${API_URL}/words?filters[dictionary][id][$eq]=${currentDictionaryId}&populate=*`, 
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${jwt}`
+                        }
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok || !result.data || result.data.length === 0) {
+                    alert('В выбранном словаре нет слов для тренировки');
+                    return;
+                }
+
+                allTrainingWords = getRandomWords(result.data, Math.min(wordCount, result.data.length));
+                availableWords = [...allTrainingWords];
+                
+                if (allTrainingWords.length === 0) {
+                    alert('Не удалось выбрать слова для тренировки');
+                    return;
+                }
+
+                gameState = {
+                    totalWords: allTrainingWords.length,
+                    wordsLeft: allTrainingWords.length,
+                    correctAnswers: 0,
+                    selectedForeignSlot: null,
+                    selectedTranslationSlot: null
+                };
+
+                foreignSlots = Array(5).fill(null);
+                translationSlots = Array(5).fill(null);
+
+                document.getElementById('setupScreen').style.display = 'none';
+                document.getElementById('gameScreen').style.display = 'block';
+                
+                // Заполняем все 10 слотов (5 иностранных + 5 переводов)
+                fillInitialSlots();
+
+            } catch (error) {
+                console.error('Ошибка загрузки слов:', error);
+                alert('Ошибка загрузки слов для тренировки');
+            }
+        }
+
+        function getRandomWords(words, count) {
+            const shuffled = [...words].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function fillInitialSlots() {
+            // Берем первые 5 слов для иностранных слотов
+            const initialWords = availableWords.splice(0, Math.min(5, availableWords.length));
+            
+            // Заполняем иностранные слова
+            initialWords.forEach((word, index) => {
+                foreignSlots[index] = {
+                    id: word.id,
+                    text: word.attributes.foreign_word,
+                    audio: word.attributes.audio?.data,
+                    slotIndex: index
+                };
+            });
+
+            // Заполняем переводы - берем ТЕ ЖЕ САМЫЕ слова, но перемешиваем их переводы
+            const translations = [...initialWords].map(word => ({
+                id: word.id,
+                text: word.attributes.translation
+            }));
+            
+            // Перемешиваем переводы
+            shuffleArray(translations);
+            
+            // Заполняем слоты переводов
+            translations.forEach((translation, index) => {
+                translationSlots[index] = {
+                    id: translation.id,
+                    text: translation.text,
+                    slotIndex: index
+                };
+            });
+
+            updateDisplay();
+            updateProgress();
+        }
+
+        function updateDisplay() {
+            const foreignContainer = document.getElementById('foreignWords');
+            const translationContainer = document.getElementById('translationWords');
+            
+            foreignContainer.innerHTML = '';
+            translationContainer.innerHTML = '';
+
+            // Отображаем иностранные слова
+            foreignSlots.forEach((word, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'word-card';
+                slot.dataset.slotIndex = index;
+                slot.dataset.type = 'foreign';
+                
+                if (word) {
+                    slot.textContent = word.text;
+                    slot.dataset.wordId = word.id;
+
+                    if (word.audio) {
+                        const audioIndicator = document.createElement('div');
+                        audioIndicator.className = 'audio-indicator';
+                        audioIndicator.textContent = '🔊';
+                        slot.appendChild(audioIndicator);
+                    }
+
+                    slot.addEventListener('click', () => handleWordClick(index, 'foreign'));
+                } else {
+                    slot.style.visibility = 'hidden';
+                }
+                
+                foreignContainer.appendChild(slot);
+            });
+
+            // Отображаем переводы
+            translationSlots.forEach((word, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'word-card';
+                slot.dataset.slotIndex = index;
+                slot.dataset.type = 'translation';
+                
+                if (word) {
+                    slot.textContent = word.text;
+                    slot.dataset.wordId = word.id;
+                    slot.addEventListener('click', () => handleWordClick(index, 'translation'));
+                } else {
+                    slot.style.visibility = 'hidden';
+                }
+                
+                translationContainer.appendChild(slot);
+            });
+        }
+
+        function handleWordClick(slotIndex, type) {
+            if (type === 'foreign') {
+                const word = foreignSlots[slotIndex];
+                if (!word) return;
+
+                playWordAudio(word.id);
+                
+                if (gameState.selectedForeignSlot !== null) {
+                    const prevElement = document.querySelector(`.word-card[data-slot-index="${gameState.selectedForeignSlot}"][data-type="foreign"]`);
+                    if (prevElement) prevElement.classList.remove('selected');
+                }
+                
+                gameState.selectedForeignSlot = slotIndex;
+                const currentElement = document.querySelector(`.word-card[data-slot-index="${slotIndex}"][data-type="foreign"]`);
+                currentElement.classList.add('selected');
+                
+                resetIncorrectSelection();
+            } else {
+                const word = translationSlots[slotIndex];
+                if (!word) return;
+
+                gameState.selectedTranslationSlot = slotIndex;
+                const currentElement = document.querySelector(`.word-card[data-slot-index="${slotIndex}"][data-type="translation"]`);
+                currentElement.classList.add('selected');
+
+                resetIncorrectSelection();
+
+                if (gameState.selectedForeignSlot !== null && gameState.selectedTranslationSlot !== null) {
+                    checkWordPair(gameState.selectedForeignSlot, gameState.selectedTranslationSlot);
+                }
+            }
+        }
+
+        function playWordAudio(wordId) {
+            const word = allTrainingWords.find(w => w.id === wordId);
+            if (word && word.attributes.audio?.data) {
+                const audioUrl = `https://memboost.ru${word.attributes.audio.data.attributes.url}`;
+                const audio = new Audio(audioUrl);
+                audio.play().catch(error => {
+                    console.log('Не удалось воспроизвести аудио');
+                });
+            }
+        }
+
+        function resetIncorrectSelection() {
+            document.querySelectorAll('.word-card.incorrect').forEach(element => {
+                element.classList.remove('incorrect');
+            });
+        }
+
+        function checkWordPair(foreignSlotIndex, translationSlotIndex) {
+            const foreignWord = foreignSlots[foreignSlotIndex];
+            const translationWord = translationSlots[translationSlotIndex];
+
+            if (!foreignWord || !translationWord) return;
+
+            const isCorrect = foreignWord.id === translationWord.id;
+
+            const foreignElement = document.querySelector(`.word-card[data-slot-index="${foreignSlotIndex}"][data-type="foreign"]`);
+            const translationElement = document.querySelector(`.word-card[data-slot-index="${translationSlotIndex}"][data-type="translation"]`);
+
+            if (isCorrect) {
+                foreignElement.classList.add('correct');
+                translationElement.classList.add('correct');
+                
+                gameState.correctAnswers++;
+                gameState.wordsLeft--;
+
+                // Удаляем ОБА слова из слотов после анимации
+                setTimeout(() => {
+                    foreignSlots[foreignSlotIndex] = null;
+                    translationSlots[translationSlotIndex] = null;
+                    
+                    resetSelection();
+                    
+                    // Заполняем пустые слоты новыми словами
+                    fillEmptySlots();
+                    
+                    updateProgress();
+                }, 500);
+
+            } else {
+                foreignElement.classList.add('incorrect');
+                translationElement.classList.add('incorrect');
+
+                setTimeout(() => {
+                    foreignElement.classList.remove('incorrect', 'selected');
+                    translationElement.classList.remove('incorrect', 'selected');
+                    resetSelection();
+                }, 1000);
+            }
+        }
+
+        function fillEmptySlots() {
+            // Находим пустые слоты
+            const emptyForeignSlots = [];
+            const emptyTranslationSlots = [];
+            
+            for (let i = 0; i < 5; i++) {
+                if (foreignSlots[i] === null) emptyForeignSlots.push(i);
+                if (translationSlots[i] === null) emptyTranslationSlots.push(i);
+            }
+
+            // Если есть пустые слоты и есть доступные слова
+            if (emptyForeignSlots.length > 0 && availableWords.length > 0) {
+                // Берем новые слова для заполнения
+                const newWords = availableWords.splice(0, Math.min(emptyForeignSlots.length, availableWords.length));
+                
+                // Заполняем иностранные слова
+                newWords.forEach((word, index) => {
+                    const slotIndex = emptyForeignSlots[index];
+                    if (slotIndex !== undefined) {
+                        foreignSlots[slotIndex] = {
+                            id: word.id,
+                            text: word.attributes.foreign_word,
+                            audio: word.attributes.audio?.data,
+                            slotIndex: slotIndex
+                        };
+                    }
+                });
+
+                // Создаем переводы для новых слов
+                const newTranslations = newWords.map(word => ({
+                    id: word.id,
+                    text: word.attributes.translation
+                }));
+                
+                // Перемешиваем переводы
+                shuffleArray(newTranslations);
+                
+                // Заполняем пустые слоты переводов
+                newTranslations.forEach((translation, index) => {
+                    const slotIndex = emptyTranslationSlots[index];
+                    if (slotIndex !== undefined) {
+                        translationSlots[slotIndex] = {
+                            id: translation.id,
+                            text: translation.text,
+                            slotIndex: slotIndex
+                        };
+                    }
+                });
+
+                updateDisplay();
+            }
+        }
+
+        function resetSelection() {
+            gameState.selectedForeignSlot = null;
+            gameState.selectedTranslationSlot = null;
+        }
+
+        function updateProgress() {
+            document.getElementById('wordsLeft').textContent = gameState.wordsLeft;
+            document.getElementById('correctCount').textContent = gameState.correctAnswers;
+            document.getElementById('totalCount').textContent = gameState.totalWords;
+
+            if (gameState.wordsLeft === 0 && availableWords.length === 0) {
+                setTimeout(() => finishTraining(), 1000);
+            }
+        }
+
+        function finishTraining() {
+            alert(`Тренировка завершена!\n\nПравильных ответов: ${gameState.correctAnswers} из ${gameState.totalWords}\nУспешность: ${Math.round((gameState.correctAnswers / gameState.totalWords) * 100)}%`);
+            goBack();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function goBack() {
+            window.location.href = 'main.html';
+        }
+    </script>
+</body>
+</html>

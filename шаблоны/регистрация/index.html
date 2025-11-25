@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Форма регистрации с поворотом</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <input id="signup_toggle" type="checkbox" />
+    <form class="form">
+      <!-- Форма входа -->
+      <div class="form_front">
+        <div class="form_details">Войти</div>
+        <input type="text" class="input" placeholder="Имя пользователя" />
+        <input type="password" class="input" placeholder="Пароль" />
+        <button class="btn">Войти</button>
+        <span class="switch">Нет аккаунта? 
+          <label for="signup_toggle" class="signup_tog">Зарегистрироваться</label>
+        </span>
+      </div>
+
+      <!-- Форма регистрации -->
+      <div class="form_back">
+        <div class="form_details">Регистрация</div>
+        <input type="text" class="input" placeholder="Имя" />
+        <input type="email" class="input" placeholder="Email" />
+        <input type="password" class="input" placeholder="Пароль" />
+        <input type="password" class="input" placeholder="Подтвердите пароль" />
+        <button class="btn">Зарегистрироваться</button>
+        <span class="switch">Уже есть аккаунт? 
+          <label for="signup_toggle" class="signup_tog">Войти</label>
+        </span>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

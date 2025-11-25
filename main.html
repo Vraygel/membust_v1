@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Memboost - Главная</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Arial', sans-serif;
+		}
+
+		body {
+			background: #F1F5D8;
+			min-height: 100vh;
+			padding: 20px;
+		}
+
+		.container {
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+
+		/* Шапка */
+		.header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 20px 0;
+			margin-bottom: 30px;
+			border-bottom: 2px solid #B9FFAF;
+		}
+
+		.logo {
+			font-size: 2.5rem;
+			color: #006767;
+		}
+
+		.user-info {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			color: #008080;
+		}
+
+		.logout-btn {
+			padding: 8px 16px;
+			background: #008080;
+			color: white;
+			border: none;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: 0.3s;
+		}
+
+		.logout-btn:hover {
+			background: #006767;
+		}
+
+		/* Основной контент */
+		.main-content {
+			display: grid;
+			grid-template-columns: 1fr 2fr;
+			gap: 30px;
+		}
+
+		/* Боковая панель */
+		.sidebar {
+			background: #279E9D;
+			padding: 25px;
+			border-radius: 15px;
+			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+		}
+
+		.section-title {
+			color: white;
+			margin-bottom: 20px;
+			font-size: 1.4rem;
+		}
+
+		/* Карточки */
+		.card {
+			background: white;
+			padding: 25px;
+			border-radius: 12px;
+			margin-bottom: 20px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+			border: 2px solid #B9FFAF;
+		}
+
+		.card h3 {
+			color: #006767;
+			margin-bottom: 15px;
+		}
+
+		/* Формы */
+		.form-group {
+			margin-bottom: 15px;
+		}
+
+		.form-group label {
+			display: block;
+			margin-bottom: 5px;
+			color: #008080;
+			font-weight: 500;
+		}
+
+		.form-input {
+			width: 100%;
+			padding: 12px;
+			border: 2px solid #B9FFAF;
+			border-radius: 8px;
+			background: #F1F5D8;
+			font-size: 16px;
+			transition: 0.3s;
+		}
+
+		.form-input:focus {
+			outline: none;
+			border-color: #97FA9A;
+			background: white;
+		}
+
+		.btn {
+			padding: 12px 25px;
+			background: #008080;
+			color: white;
+			border: none;
+			border-radius: 8px;
+			cursor: pointer;
+			font-size: 16px;
+			font-weight: 500;
+			transition: 0.3s;
+			width: 100%;
+		}
+
+		.btn:hover {
+			background: #006767;
+			transform: translateY(-2px);
+		}
+
+		.btn-secondary {
+			background: #4EBCBA;
+		}
+
+		.btn-secondary:hover {
+			background: #279E9D;
+		}
+
+		/* Список словарей */
+		.dictionaries-list {
+			max-height: 400px;
+			overflow-y: auto;
+		}
+
+		.dictionary-item {
+			background: #F1F5D8;
+			padding: 15px;
+			margin-bottom: 10px;
+			border-radius: 8px;
+			border: 1px solid #B9FFAF;
+			cursor: pointer;
+			transition: 0.3s;
+		}
+
+		.dictionary-item:hover {
+			background: #D6FFC1;
+			transform: translateX(5px);
+		}
+
+		.dictionary-item.active {
+			background: #97FA9A;
+			border-color: #008080;
+		}
+
+		.dictionary-name {
+			font-weight: bold;
+			color: #006767;
+			margin-bottom: 5px;
+		}
+
+		.dictionary-meta {
+			font-size: 0.9rem;
+			color: #008080;
+		}
+
+		/* Слова */
+		.words-section {
+			background: white;
+			padding: 25px;
+			border-radius: 15px;
+			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+		}
+
+		.words-header {
+			display: flex;
+			justify-content: between;
+			align-items: center;
+			margin-bottom: 25px;
+		}
+
+		.words-list {
+			display: grid;
+			gap: 15px;
+			max-height: 500px;
+			overflow-y: auto;
+		}
+
+		.word-item {
+			background: #F1F5D8;
+			padding: 15px;
+			border-radius: 8px;
+			border: 1px solid #B9FFAF;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.word-content {
+			flex: 1;
+		}
+
+		.word-foreign {
+			font-weight: bold;
+			color: #006767;
+			font-size: 1.1rem;
+		}
+
+		.word-translation {
+			color: #008080;
+			margin-top: 5px;
+		}
+
+		.word-transcription {
+			color: #4EBCBA;
+			font-style: italic;
+			font-size: 0.9rem;
+		}
+
+		.word-actions {
+			display: flex;
+			gap: 10px;
+		}
+
+		.btn-small {
+			padding: 6px 12px;
+			font-size: 0.8rem;
+			width: auto;
+		}
+
+		/* Сообщения */
+		.message {
+			padding: 10px;
+			border-radius: 8px;
+			margin: 10px 0;
+			text-align: center;
+			font-weight: 500;
+		}
+
+		.message.success {
+			background: #97FA9A;
+			color: #006767;
+		}
+
+		.message.error {
+			background: #FF6B6B;
+			color: white;
+		}
+
+		/* Стили для аудио плеера */
+		.word-audio audio {
+			border-radius: 6px;
+			background: #F1F5D8;
+		}
+
+		.word-audio audio::-webkit-media-controls-panel {
+			background: #F1F5D8;
+		}
+
+		.word-audio audio::-webkit-media-controls-play-button {
+			background: #008080;
+			border-radius: 50%;
+		}
+
+		/* Стили для модального окна */
+		.modal-backdrop {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 1000;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.modal-content {
+			background: white;
+			padding: 30px;
+			border-radius: 15px;
+			max-width: 500px;
+			width: 90%;
+			max-height: 90vh;
+			overflow-y: auto;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+		}
+
+		/* Стили для поиска */
+.search-highlight {
+    background-color: #FFEB3B;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.search-stats {
+    color: #008080;
+    font-size: 0.9rem;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.no-results {
+    text-align: center;
+    color: #008080;
+    padding: 40px;
+    font-style: italic;
+}
+
+		/* Адаптивность */
+		@media (max-width: 768px) {
+			.main-content {
+				grid-template-columns: 1fr;
+			}
+
+			.header {
+				flex-direction: column;
+				gap: 15px;
+				text-align: center;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<!-- Шапка -->
+		<div class="header">
+			<div class="logo-section">
+				<div class="logo">📚</div>
+				<h1>Memboost</h1>
+			</div>
+			<div class="user-info">
+				<span id="userName">Пользователь</span>
+				<button class="logout-btn" onclick="logout()">Выйти</button>
+			</div>
+		</div>
+
+		<!-- Основной контент -->
+		<div class="main-content">
+			<!-- Боковая панель -->
+			<div class="sidebar">
+				<h2 class="section-title">Мои словари</h2>
+
+				<!-- Форма создания словаря -->
+				<div class="card">
+					<h3>Создать словарь</h3>
+					<div class="form-group">
+						<label>Название словаря:</label>
+						<input type="text" class="form-input" id="dictName" placeholder="Мой английский словарь">
+					</div>
+					<div class="form-group">
+						<label>Язык:</label>
+						<select class="form-input" id="dictLanguage">
+							<option value="english">Английский</option>
+							<option value="german">Немецкий</option>
+							<option value="french">Французский</option>
+							<option value="spanish">Испанский</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>Описание (необязательно):</label>
+						<textarea class="form-input" id="dictDescription" placeholder="Описание словаря" rows="3"></textarea>
+					</div>
+					<button class="btn" onclick="createDictionary()">Создать словарь</button>
+				</div>
+
+				<!-- Список словарей -->
+				<div class="card">
+					<h3>Мои словари</h3>
+					<div class="dictionaries-list" id="dictionariesList">
+						<!-- Словари будут загружены здесь -->
+					</div>
+				</div>
+			</div>
+
+			<!-- Основная область - Слова -->
+			<div class="words-section">
+				<div class="words-header">
+<!-- Поиск по словам -->
+
+<div class="card" style="margin-bottom: 20px;">
+    <h3 style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Поиск по словам</span>
+        <button class="btn-small btn-secondary" onclick="clearSearch()" 
+                style="padding: 4px 8px; font-size: 0.8rem; display: none;" 
+                id="clearSearchBtn">
+            ✕ Очистить
+        </button>
+    </h3>
+    <div class="form-group">
+        <input type="text" 
+               class="form-input" 
+               id="wordSearch" 
+               placeholder="Введите слово, перевод или транскрипцию..."
+               oninput="searchWords()">
+        <div style="color: #008080; font-size: 0.8rem; margin-top: 8px;">
+            🔍 Поиск работает по всем полям: иностранные слова, переводы и транскрипции
+        </div>
+    </div>
+</div>
+					<h2 id="currentDictTitle">Выберите словарь</h2>
+<div id="wordActions" style="display: none;">
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" onclick="showAddWordForm()">Добавить слово</button>
+        <button class="btn" onclick="startTrainingFromDict()" style="background: #4EBCBA;">🎯 Тренироваться</button>
+    </div>
+</div>
+				</div>
+				<!-- В разделе слов, рядом с кнопкой "Добавить слово" -->
+
+
+				<!-- Форма добавления слова (скрыта по умолчанию) -->
+				<div class="card" id="addWordForm" style="display: none;">
+					<h3>Добавить слово</h3>
+					<div class="form-group">
+						<label>Иностранное слово:</label>
+						<input type="text" class="form-input" id="foreignWord" placeholder="hello">
+					</div>
+					<div class="form-group">
+						<label>Перевод:</label>
+						<input type="text" class="form-input" id="wordTranslation" placeholder="привет">
+					</div>
+					<div class="form-group">
+						<label>Транскрипция (необязательно):</label>
+						<input type="text" class="form-input" id="wordTranscription" placeholder="həˈləʊ">
+					</div>
+					<div class="form-group">
+						<label>Аудио произношение (необязательно):</label>
+						<input type="file" class="form-input" id="wordAudio" accept="audio/*">
+						<small style="color: #008080; font-size: 0.8rem;">Поддерживаются форматы: MP3, WAV, OGG</small>
+					</div>
+					<div class="form-group">
+						<button class="btn" onclick="createWord()">Добавить слово</button>
+						<button class="btn btn-secondary" onclick="hideAddWordForm()" style="margin-top: 10px;">Отмена</button>
+					</div>
+				</div>
+
+				<!-- Сообщения -->
+				<div id="messageContainer"></div>
+
+				<!-- Список слов -->
+				<div class="words-list" id="wordsList">
+					<!-- Слова будут загружены здесь -->
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Модальное окно редактирования слова -->
+	<div id="editWordModal" class="modal-backdrop" style="display: none;">
+		<div class="card" style="max-width: 500px; width: 90%; background: white;">
+			<h3>Редактировать слово</h3>
+			<div class="form-group">
+				<label>Иностранное слово:</label>
+				<input type="text" class="form-input" id="editForeignWord" placeholder="hello">
+			</div>
+			<div class="form-group">
+				<label>Перевод:</label>
+				<input type="text" class="form-input" id="editTranslation" placeholder="привет">
+			</div>
+			<div class="form-group">
+				<label>Транскрипция (необязательно):</label>
+				<input type="text" class="form-input" id="editTranscription" placeholder="həˈləʊ">
+			</div>
+			<div class="form-group">
+				<label>Текущее аудио:</label>
+				<div id="currentAudio" style="margin: 10px 0;"></div>
+				<label>Новое аудио (необязательно):</label>
+				<input type="file" class="form-input" id="editAudio" accept="audio/*">
+				<small style="color: #008080; font-size: 0.8rem;">Оставьте пустым, чтобы сохранить текущее аудио</small>
+			</div>
+			<div class="form-group" style="display: flex; gap: 10px;">
+				<button class="btn" onclick="updateWord()">Сохранить</button>
+				<button class="btn btn-secondary" onclick="closeEditModal()">Отмена</button>
+				<button class="btn" style="background: #ff6b6b;" onclick="confirmDeleteWord()">Удалить</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Модальное окно подтверждения удаления -->
+	<div id="confirmDeleteModal" class="modal-backdrop" style="display: none;">
+		<div class="card" style="max-width: 400px; width: 90%; background: greenyellow; text-align: center;">
+			<div style="font-size: 3rem; margin-bottom: 15px; color: #ff6b6b;">🗑️</div>
+			<h3 style="color: #006767; margin-bottom: 10px;">Подтверждение удаления</h3>
+			<p id="deleteConfirmText" style="color: #008080; margin-bottom: 20px; line-height: 1.4;">
+				Вы уверены, что хотите удалить это слово?
+			</p>
+			<p style="color: #ff6b6b; font-size: 0.9rem; margin-bottom: 25px; font-weight: 500;">
+				⚠️ Это действие нельзя отменить!
+			</p>
+			<div style="display: flex; gap: 10px; justify-content: center;">
+				<button class="btn" onclick="cancelDelete()"
+					style="background: #4EBCBA; width: auto; padding: 10px 20px;">Отмена</button>
+				<button class="btn" onclick="confirmDelete()"
+					style="background: #ff6b6b; width: auto; padding: 10px 20px;">Удалить</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Модальное окно редактирования словаря -->
+	<div id="editDictionaryModal" class="modal-backdrop" style="display: none;">
+		<div class="card" style="max-width: 500px; width: 90%; background: white;">
+			<h3>Редактировать словарь</h3>
+			<div class="form-group">
+				<label>Название словаря:</label>
+				<input type="text" class="form-input" id="editDictName" placeholder="Название словаря">
+			</div>
+			<div class="form-group">
+				<label>Язык:</label>
+				<select class="form-input" id="editDictLanguage">
+					<option value="english">Английский</option>
+					<option value="german">Немецкий</option>
+					<option value="french">Французский</option>
+					<option value="spanish">Испанский</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label>Описание (необязательно):</label>
+				<textarea class="form-input" id="editDictDescription" placeholder="Описание словаря" rows="3"></textarea>
+			</div>
+			<div class="form-group" style="display: flex; gap: 10px;">
+				<button class="btn" onclick="updateDictionary()">Сохранить</button>
+				<button class="btn btn-secondary" onclick="closeEditDictModal()">Отмена</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Модальное окно подтверждения удаления словаря -->
+	<div id="confirmDeleteDictModal" class="modal-backdrop" style="display: none;">
+		<div class="card" style="max-width: 400px; width: 90%; background: white; text-align: center;">
+			<div style="font-size: 3rem; margin-bottom: 15px; color: #ff6b6b;">📚❌</div>
+			<h3 style="color: #006767; margin-bottom: 10px;">Удаление словаря</h3>
+			<p id="deleteDictConfirmText" style="color: #008080; margin-bottom: 20px; line-height: 1.4;">
+				Вы уверены, что хотите удалить этот словарь?
+			</p>
+			<p style="color: #ff6b6b; font-size: 0.9rem; margin-bottom: 25px; font-weight: 500;">
+				⚠️ Будут удалены ВСЕ слова в этом словаре!<br>
+				Это действие нельзя отменить!
+			</p>
+			<div style="display: flex; gap: 10px; justify-content: center;">
+				<button class="btn" onclick="cancelDeleteDict()"
+					style="background: #4EBCBA; width: auto; padding: 10px 20px;">Отмена</button>
+				<button class="btn" onclick="confirmDeleteDict()"
+					style="background: #ff6b6b; width: auto; padding: 10px 20px;">Удалить словарь</button>
+			</div>
+		</div>
+	</div>
+
+
+<script>
+const API_URL = 'https://memboost.ru/api';
+let currentDictionaryId = null;
+let jwt = '';
+let currentlyEditingWordId = null;
+let wordToDelete = null;
+let currentlyEditingDictId = null;
+let dictToDelete = null;
+
+// ПЕРЕМЕННЫЕ ДЛЯ ПОИСКА
+let allWords = [];
+let currentSearchQuery = '';
+
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function () {
+    jwt = localStorage.getItem('jwt');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    if (!jwt) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    document.getElementById('userName').textContent = user.username || 'Пользователь';
+    loadDictionaries();
+    
+    // Инициализация поиска
+    const searchInput = document.getElementById('wordSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                clearSearch();
+                this.blur();
+            }
+        });
+    }
+});
+
+// Функции для сообщений
+function showMessage(message, type = 'success') {
+    const container = document.getElementById('messageContainer');
+    container.innerHTML = `<div class="message ${type}">${message}</div>`;
+    setTimeout(() => {
+        container.innerHTML = '';
+    }, 3000);
+}
+
+// Загрузка словарей
+async function loadDictionaries() {
+    try {
+        // Загружаем словари без слов (для быстрой загрузки)
+        const dictResponse = await fetch(`${API_URL}/dictionaries`, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            }
+        });
+
+        const dictResult = await dictResponse.json();
+
+        if (dictResponse.ok) {
+            const dictionaries = dictResult.data || [];
+            
+            // Для каждого словаря загружаем количество слов отдельно
+            const dictionariesWithWordCount = await Promise.all(
+                dictionaries.map(async (dict) => {
+                    try {
+                        const wordsResponse = await fetch(
+                            `${API_URL}/words?filters[dictionary][id][$eq]=${dict.id}`, 
+                            {
+                                headers: {
+                                    'Authorization': `Bearer ${jwt}`
+                                }
+                            }
+                        );
+                        const wordsResult = await wordsResponse.json();
+                        const wordCount = wordsResult.data?.length || 0;
+                        
+                        return {
+                            ...dict,
+                            wordCount: wordCount
+                        };
+                    } catch (error) {
+                        console.error(`Ошибка загрузки слов для словаря ${dict.id}:`, error);
+                        return {
+                            ...dict,
+                            wordCount: 0
+                        };
+                    }
+                })
+            );
+            
+            displayDictionaries(dictionariesWithWordCount);
+        } else {
+            showMessage('Ошибка загрузки словарей', 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка сети: ' + error.message, 'error');
+    }
+}
+
+// Отображение словарей
+function displayDictionaries(dictionaries) {
+    const container = document.getElementById('dictionariesList');
+
+    if (dictionaries.length === 0) {
+        container.innerHTML = '<p style="color: #008080; text-align: center;">У вас пока нет словарей</p>';
+        return;
+    }
+
+    container.innerHTML = dictionaries.map(dict => {
+        const wordCount = dict.wordCount !== undefined ? dict.wordCount : (dict.attributes.words?.data?.length || 0);
+        
+        // Универсальное получение описания
+        const description = dict.attributes.Description || dict.attributes.description || dict.attributes.desc || '';
+        
+        return `
+        <div class="dictionary-item ${currentDictionaryId === dict.id ? 'active' : ''}">
+            <div class="dictionary-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div style="flex: 1;">
+                    <div class="dictionary-name">${dict.attributes.name}</div>
+                    <div class="dictionary-meta">
+                        ${getLanguageName(dict.attributes.language)} • ${wordCount} слов
+                        ${description ? `• ${description}` : ''}
+                    </div>
+                </div>
+                <div class="dictionary-actions" style="display: flex; gap: 5px; margin-left: 10px;">
+                    <button class="btn-small btn-secondary" onclick="editDictionary(${dict.id}, event)" style="padding: 4px 8px;">✏️</button>
+                    <button class="btn-small" onclick="deleteDictionary(${dict.id}, event)" style="padding: 4px 8px; background: #ff6b6b;">🗑️</button>
+                </div>
+            </div>
+            <div onclick="selectDictionary(${dict.id}, '${dict.attributes.name}')" style="cursor: pointer; padding: 5px 0;">
+                <div style="font-size: 0.8rem; color: #4EBCBA;">Нажмите чтобы посмотреть слова</div>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+
+// Функция для получения читаемого названия языка
+function getLanguageName(langCode) {
+    const languages = {
+        'english': 'Английский',
+        'german': 'Немецкий', 
+        'french': 'Французский',
+        'spanish': 'Испанский'
+    };
+    return languages[langCode] || langCode;
+}
+
+// Создание словаря
+async function createDictionary() {
+    const name = document.getElementById('dictName').value;
+    const language = document.getElementById('dictLanguage').value;
+    const description = document.getElementById('dictDescription').value;
+
+    if (!name) {
+        showMessage('Введите название словаря', 'error');
+        return;
+    }
+
+    try {
+        // Пробуем разные варианты названия поля
+        const requestData = {
+            data: {
+                name: name,
+                language: language,
+                is_public: false
+            }
+        };
+
+        // Добавляем описание в разных вариантах
+        if (description) {
+            // Пробуем все возможные варианты
+            requestData.data.Description = description; // С заглавной (скорее всего этот)
+            requestData.data.description = description; // Со строчной
+            requestData.data.desc = description;        // Сокращенный вариант
+        }
+
+        console.log('Отправляемые данные при создании:', requestData);
+
+        const response = await fetch(`${API_URL}/dictionaries`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwt}`
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+        console.log('Ответ при создании словаря:', result);
+
+        if (response.ok) {
+            showMessage('Словарь создан!');
+            document.getElementById('dictName').value = '';
+            document.getElementById('dictDescription').value = '';
+            loadDictionaries();
+        } else {
+            showMessage('Ошибка создания словаря: ' + (result.error?.message || 'Неизвестная ошибка'), 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка сети: ' + error.message, 'error');
+    }
+}
+
+// Выбор словаря
+function selectDictionary(dictId, dictName) {
+    currentDictionaryId = dictId;
+    document.getElementById('currentDictTitle').textContent = dictName;
+    document.getElementById('wordActions').style.display = 'block';
+    document.getElementById('addWordForm').style.display = 'none';
+
+    // Обновляем активный класс
+    document.querySelectorAll('.dictionary-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    event.currentTarget.classList.add('active');
+
+    // Сбрасываем поиск при смене словаря
+    clearSearch();
+    loadWords(dictId);
+}
+
+// Показать форму добавления слова
+function showAddWordForm() {
+    document.getElementById('addWordForm').style.display = 'block';
+}
+
+// Скрыть форму добавления слова
+function hideAddWordForm() {
+    document.getElementById('addWordForm').style.display = 'none';
+}
+
+// Создание слова
+async function createWord() {
+    if (!currentDictionaryId) {
+        showMessage('Сначала выберите словарь', 'error');
+        return;
+    }
+
+    const foreignWord = document.getElementById('foreignWord').value;
+    const translation = document.getElementById('wordTranslation').value;
+    const transcription = document.getElementById('wordTranscription').value;
+    const audioFile = document.getElementById('wordAudio').files[0];
+
+    if (!foreignWord || !translation) {
+        showMessage('Заполните обязательные поля', 'error');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+
+        // Добавляем данные слова
+        formData.append('data', JSON.stringify({
+            foreign_word: foreignWord,
+            translation: translation,
+            transcription: transcription,
+            dictionary: currentDictionaryId
+        }));
+
+        // Добавляем аудио файл, если есть
+        if (audioFile) {
+            formData.append('files.audio', audioFile);
+        }
+
+        const response = await fetch(`${API_URL}/words`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showMessage('Слово добавлено!');
+            // Очищаем форму
+            document.getElementById('foreignWord').value = '';
+            document.getElementById('wordTranslation').value = '';
+            document.getElementById('wordTranscription').value = '';
+            document.getElementById('wordAudio').value = '';
+            hideAddWordForm();
+            loadWords(currentDictionaryId);
+            loadDictionaries(); // Обновляем счетчик слов
+        } else {
+            showMessage('Ошибка добавления слова', 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка сети: ' + error.message, 'error');
+    }
+}
+
+// Загрузка слов словаря
+async function loadWords(dictId) {
+    try {
+        const response = await fetch(`${API_URL}/words?filters[dictionary][id][$eq]=${dictId}&populate=*`, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            allWords = result.data || [];
+            
+            // Сбрасываем поиск при загрузке новых слов
+            if (currentSearchQuery) {
+                searchWords();
+            } else {
+                displayWords(allWords);
+            }
+        } else {
+            showMessage('Ошибка загрузки слов: ' + (result.error?.message || 'Неизвестная ошибка'), 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка загрузки слов: ' + error.message, 'error');
+    }
+}
+
+// Отображение слов
+function displayWords(words) {
+    const container = document.getElementById('wordsList');
+
+    if (!words || words.length === 0) {
+        container.innerHTML = '<p style="color: #008080; text-align: center; padding: 40px;">В этом словаре пока нет слов</p>';
+        return;
+    }
+
+    // Фильтруем null значения и проверяем структуру данных
+    const validWords = words.filter(word => {
+        if (!word || !word.attributes) {
+            return false;
+        }
+        return true;
+    });
+
+    if (validWords.length === 0) {
+        container.innerHTML = '<p style="color: #008080; text-align: center; padding: 40px;">Нет корректных слов для отображения</p>';
+        return;
+    }
+
+    container.innerHTML = validWords.map(word => {
+        // Безопасное получение данных с проверками
+        const foreignWord = word.attributes?.foreign_word || 'Неизвестно';
+        const translation = word.attributes?.translation || 'Неизвестно';
+        const transcription = word.attributes?.transcription || '';
+        const audio = word.attributes?.audio?.data;
+
+        return `
+            <div class="word-item">
+                <div class="word-content">
+                    <div class="word-foreign">${foreignWord}</div>
+                    <div class="word-translation">${translation}</div>
+                    ${transcription ? `<div class="word-transcription">[${transcription}]</div>` : ''}
+                    ${audio ? `
+                        <div class="word-audio" style="margin-top: 8px;">
+                            <audio controls style="width: 100%; height: 35px;">
+                                <source src="https://memboost.ru${audio.attributes.url}" type="${audio.attributes.mime}">
+                                Ваш браузер не поддерживает аудио элемент.
+                            </audio>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="word-actions">
+                    ${audio ? `
+                        <button class="btn btn-small btn-secondary" onclick="playAudio('${audio.attributes.url}')">🔊</button>
+                    ` : ''}
+                    <button class="btn btn-small btn-secondary" onclick="editWord(${word.id})">✏️</button>
+                    <button class="btn btn-small" onclick="deleteWord(${word.id})">🗑️</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Функция для проигрывания аудио
+function playAudio(audioUrl) {
+    const audio = new Audio(`https://memboost.ru${audioUrl}`);
+    audio.play().catch(error => {
+        showMessage('Не удалось воспроизвести аудио', 'error');
+    });
+}
+
+// Выход
+function logout() {
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('user');
+    window.location.href = 'index.html';
+}
+
+// РЕДАКТИРОВАНИЕ СЛОВ
+// Открытие модального окна редактирования слова
+async function editWord(wordId) {
+    console.log('Редактирование слова:', wordId);
+    currentlyEditingWordId = wordId;
+    
+    try {
+        // Загружаем данные слова
+        const response = await fetch(`${API_URL}/words/${wordId}?populate=*`, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            }
+        });
+
+        const result = await response.json();
+        
+        if (response.ok && result.data) {
+            const word = result.data;
+            const attributes = word.attributes;
+            
+            // Заполняем форму данными
+            document.getElementById('editForeignWord').value = attributes.foreign_word || '';
+            document.getElementById('editTranslation').value = attributes.translation || '';
+            document.getElementById('editTranscription').value = attributes.transcription || '';
+            document.getElementById('editAudio').value = '';
+            
+            // Показываем текущее аудио
+            const currentAudioContainer = document.getElementById('currentAudio');
+            if (attributes.audio?.data) {
+                currentAudioContainer.innerHTML = `
+                    <audio controls style="width: 100%; height: 35px; margin: 5px 0;">
+                        <source src="https://memboost.ru${attributes.audio.data.attributes.url}" 
+                                type="${attributes.audio.data.attributes.mime}">
+                        Ваш браузер не поддерживает аудио элемент.
+                    </audio>
+                    <div style="font-size: 0.8rem; color: #008080; margin-top: 5px;">
+                        Текущее аудио
+                    </div>
+                `;
+            } else {
+                currentAudioContainer.innerHTML = '<div style="color: #008080;">Аудио не загружено</div>';
+            }
+            
+            // Показываем модальное окно
+            document.getElementById('editWordModal').style.display = 'flex';
+            
+        } else {
+            showMessage('Ошибка загрузки данных слова', 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке слова:', error);
+        showMessage('Ошибка загрузки данных слова', 'error');
+    }
+}
+
+// Закрытие модального окна редактирования слова
+function closeEditModal() {
+    document.getElementById('editWordModal').style.display = 'none';
+    currentlyEditingWordId = null;
+}
+
+// Обновление слова
+async function updateWord() {
+    if (!currentlyEditingWordId) {
+        showMessage('Слово не выбрано для редактирования', 'error');
+        return;
+    }
+
+    const foreignWord = document.getElementById('editForeignWord').value;
+    const translation = document.getElementById('editTranslation').value;
+    const transcription = document.getElementById('editTranscription').value;
+    const newAudioFile = document.getElementById('editAudio').files[0];
+
+    if (!foreignWord || !translation) {
+        showMessage('Заполните обязательные поля', 'error');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        
+        // Подготавливаем данные для обновления
+        const wordData = {
+            foreign_word: foreignWord,
+            translation: translation,
+            transcription: transcription
+        };
+
+        // Если есть новое аудио, добавляем его
+        if (newAudioFile) {
+            formData.append('files.audio', newAudioFile);
+            wordData.audio = null; // Удаляем старое аудио если загружаем новое
+        }
+
+        formData.append('data', JSON.stringify(wordData));
+
+        const response = await fetch(`${API_URL}/words/${currentlyEditingWordId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showMessage('Слово обновлено!');
+            closeEditModal();
+            loadWords(currentDictionaryId); // Обновляем список слов
+        } else {
+            showMessage('Ошибка обновления слова: ' + (result.error?.message || 'Неизвестная ошибка'), 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении слова:', error);
+        showMessage('Ошибка обновления слова: ' + error.message, 'error');
+    }
+}
+
+// УДАЛЕНИЕ СЛОВ
+// Удаление слова (из списка слов - красивое модальное окно)
+async function deleteWord(wordId) {
+    wordToDelete = wordId;
+    
+    // Загружаем данные слова для показа
+    try {
+        const response = await fetch(`${API_URL}/words/${wordId}?fields[0]=foreign_word&fields[1]=translation`, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            }
+        });
+        const result = await response.json();
+        
+        if (response.ok && result.data) {
+            const word = result.data;
+            document.getElementById('deleteConfirmText').innerHTML = `
+                Вы уверены, что хотите удалить слово:<br>
+                <strong style="color: #006767;">"${word.attributes.foreign_word} → ${word.attributes.translation}"</strong>?
+            `;
+        } else {
+            document.getElementById('deleteConfirmText').textContent = 
+                'Вы уверены, что хотите удалить это слово?';
+        }
+    } catch (error) {
+        document.getElementById('deleteConfirmText').textContent = 
+            'Вы уверены, что хотите удалить это слово?';
+    }
+    
+    // Показываем красивое модальное окно
+    document.getElementById('confirmDeleteModal').style.display = 'flex';
+}
+
+// Удаление слова из модального окна редактирования (тоже красивое модальное)
+async function confirmDeleteWord() {
+    if (!currentlyEditingWordId) {
+        showMessage('Слово не выбрано для удаления', 'error');
+        return;
+    }
+    
+    wordToDelete = currentlyEditingWordId;
+    
+    // Загружаем данные слова для показа
+    try {
+        const response = await fetch(`${API_URL}/words/${currentlyEditingWordId}?fields[0]=foreign_word&fields[1]=translation`, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.data) {
+            const word = result.data;
+            document.getElementById('deleteConfirmText').innerHTML = `
+                Вы уверены, что хотите удалить слово:<br>
+                <strong style="color: #006767;">"${word.attributes.foreign_word} → ${word.attributes.translation}"</strong>?
+            `;
+        } else {
+            document.getElementById('deleteConfirmText').textContent = 
+                'Вы уверены, что хотите удалить это слово?';
+        }
+    } catch (error) {
+        document.getElementById('deleteConfirmText').textContent = 
+            'Вы уверены, что хотите удалить это слово?';
+    }
+    
+    // Показываем красивое модальное окно
+    document.getElementById('confirmDeleteModal').style.display = 'flex';
+}
+
+// Подтверждение удаления из красивого модального окна
+function confirmDelete() {
+    if (wordToDelete) {
+        performWordDeletion(wordToDelete);
+        closeDeleteModal();
+    }
+}
+
+// Отмена удаления из красивого модального окна
+function cancelDelete() {
+    closeDeleteModal();
+}
+
+// Закрытие модального окна удаления
+function closeDeleteModal() {
+    document.getElementById('confirmDeleteModal').style.display = 'none';
+    wordToDelete = null;
+}
+
+// Функция для выполнения удаления
+async function performWordDeletion(wordId) {
+    try {
+        showMessage('Удаление...', 'success');
+        
+        const response = await fetch(`${API_URL}/words/${wordId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            showMessage('Слово удалено!');
+            // Закрываем оба модальных окна если они открыты
+            closeEditModal();
+            closeDeleteModal();
+            // Обновляем данные
+            loadWords(currentDictionaryId);
+            loadDictionaries();
+        } else {
+            const result = await response.json();
+            showMessage('Ошибка удаления слова: ' + (result.error?.message || 'Неизвестная ошибка'), 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка удаления слова: ' + error.message, 'error');
+    }
+}
+
+// РЕДАКТИРОВАНИЕ СЛОВАРЕЙ
+// Открытие модального окна редактирования словаря
+async function editDictionary(dictId, event) {
+    event.stopPropagation();
+    currentlyEditingDictId = dictId;
+    
+    try {
+        // Загружаем данные словаря
+        const response = await fetch(`${API_URL}/dictionaries/${dictId}`, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            }
+        });
+
+        const result = await response.json();
+        
+        if (response.ok && result.data) {
+            const dict = result.data;
+            const attributes = dict.attributes;
+            
+            // Заполняем форму данными
+            document.getElementById('editDictName').value = attributes.name || '';
+            document.getElementById('editDictLanguage').value = attributes.language || 'english';
+            
+            // Универсальный поиск поля описания
+            let description = '';
+            if (attributes.Description !== undefined) {
+                description = attributes.Description;
+            } else if (attributes.description !== undefined) {
+                description = attributes.description;
+            } else if (attributes.desc !== undefined) {
+                description = attributes.desc;
+            }
+            
+            document.getElementById('editDictDescription').value = description;
+            
+            // Показываем модальное окно
+            document.getElementById('editDictionaryModal').style.display = 'flex';
+            
+        } else {
+            showMessage('Ошибка загрузки данных словаря', 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка загрузки данных словаря', 'error');
+    }
+}
+
+// Закрытие модального окна редактирования словаря
+function closeEditDictModal() {
+    document.getElementById('editDictionaryModal').style.display = 'none';
+    currentlyEditingDictId = null;
+}
+
+// Обновление словаря
+async function updateDictionary() {
+    if (!currentlyEditingDictId) {
+        showMessage('Словарь не выбран для редактирования', 'error');
+        return;
+    }
+
+    const name = document.getElementById('editDictName').value;
+    const language = document.getElementById('editDictLanguage').value;
+    const description = document.getElementById('editDictDescription').value;
+
+    if (!name) {
+        showMessage('Введите название словаря', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/dictionaries/${currentlyEditingDictId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwt}`
+            },
+            body: JSON.stringify({
+                data: {
+                    name: name,
+                    language: language,
+                    Description: description,
+                    is_public: false
+                }
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showMessage('Словарь обновлен!');
+            closeEditDictModal();
+            loadDictionaries();
+            
+            if (currentDictionaryId === currentlyEditingDictId) {
+                document.getElementById('currentDictTitle').textContent = name;
+            }
+        } else {
+            showMessage('Ошибка обновления словаря: ' + (result.error?.message || 'Неизвестная ошибка'), 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка обновления словаря: ' + error.message, 'error');
+    }
+}
+
+// Удаление словаря (красивое модальное окно)
+async function deleteDictionary(dictId, event) {
+    event.stopPropagation();
+    dictToDelete = dictId;
+    
+    try {
+        // Загружаем данные словаря для показа
+        const response = await fetch(`${API_URL}/dictionaries/${dictId}?populate=words`, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.data) {
+            const dict = result.data;
+            const wordCount = dict.attributes.words?.data?.length || 0;
+            
+            document.getElementById('deleteDictConfirmText').innerHTML = `
+                Вы уверены, что хотите удалить словарь:<br>
+                <strong style="color: #006767;">"${dict.attributes.name}"</strong>?<br><br>
+                В словаре: <strong>${wordCount} слов</strong>
+            `;
+        } else {
+            document.getElementById('deleteDictConfirmText').textContent = 
+                'Вы уверены, что хотите удалить этот словарь?';
+        }
+    } catch (error) {
+        document.getElementById('deleteDictConfirmText').textContent = 
+            'Вы уверены, что хотите удалить этот словарь?';
+    }
+    
+    // Показываем красивое модальное окно
+    document.getElementById('confirmDeleteDictModal').style.display = 'flex';
+}
+
+// Подтверждение удаления словаря
+async function confirmDeleteDict() {
+    if (!dictToDelete) return;
+    
+    try {
+        showMessage('Удаление словаря...', 'success');
+        
+        const response = await fetch(`${API_URL}/dictionaries/${dictToDelete}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            showMessage('Словарь удален!');
+            closeDeleteDictModal();
+            
+            // Если удалили текущий активный словарь, сбрасываем интерфейс
+            if (currentDictionaryId === dictToDelete) {
+                currentDictionaryId = null;
+                document.getElementById('currentDictTitle').textContent = 'Выберите словарь';
+                document.getElementById('wordActions').style.display = 'none';
+                document.getElementById('wordsList').innerHTML = '';
+            }
+            
+            loadDictionaries();
+        } else {
+            const result = await response.json();
+            showMessage('Ошибка удаления словаря: ' + (result.error?.message || 'Неизвестная ошибка'), 'error');
+        }
+    } catch (error) {
+        showMessage('Ошибка удаления словаря: ' + error.message, 'error');
+    }
+}
+
+// Отмена удаления словаря
+function cancelDeleteDict() {
+    closeDeleteDictModal();
+}
+
+// Закрытие модального окна удаления словаря
+function closeDeleteDictModal() {
+    document.getElementById('confirmDeleteDictModal').style.display = 'none';
+    dictToDelete = null;
+}
+
+// ПОИСК ПО СЛОВАМ
+// Основная функция поиска
+function searchWords() {
+    const searchInputElement = document.getElementById('wordSearch');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const query = searchInputElement.value.trim().toLowerCase();
+    currentSearchQuery = query;
+    
+    // Показываем/скрываем кнопку очистки
+    if (query.length > 0 && clearBtn) {
+        clearBtn.style.display = 'block';
+    } else if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+    
+    if (!currentDictionaryId) {
+        showMessage('Сначала выберите словарь', 'error');
+        return;
+    }
+    
+    if (allWords.length === 0) {
+        return;
+    }
+    
+    if (query.length === 0) {
+        // Если поиск пустой, показываем все слова
+        displayWords(allWords);
+        return;
+    }
+    
+    // Фильтруем слова по запросу (ищем везде)
+    const filteredWords = allWords.filter(word => {
+        const foreignWord = (word.attributes?.foreign_word || '').toLowerCase();
+        const translation = (word.attributes?.translation || '').toLowerCase();
+        const transcription = (word.attributes?.transcription || '').toLowerCase();
+        
+        // Ищем во всех полях
+        return foreignWord.includes(query) || 
+               translation.includes(query) || 
+               transcription.includes(query);
+    });
+    
+    // Показываем результаты с подсветкой
+    displaySearchResults(filteredWords, query);
+}
+
+// Отображение результатов поиска
+function displaySearchResults(words, query) {
+    const container = document.getElementById('wordsList');
+    
+    if (!container) return;
+    
+    if (words.length === 0) {
+        container.innerHTML = `
+            <div class="no-results">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
+                <div>По запросу "<strong>${query}</strong>" ничего не найдено</div>
+                <div style="font-size: 0.8rem; margin-top: 10px;">
+                    Попробуйте изменить поисковый запрос
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="search-stats">
+            Найдено <strong>${words.length}</strong> слов по запросу "<strong>${query}</strong>"
+        </div>
+    ` + words.map(word => {
+        const foreignWord = word.attributes?.foreign_word || 'Неизвестно';
+        const translation = word.attributes?.translation || 'Неизвестно';
+        const transcription = word.attributes?.transcription || '';
+        const audio = word.attributes?.audio?.data;
+        
+        // Подсвечиваем найденный текст
+        const highlightedForeign = highlightText(foreignWord, query);
+        const highlightedTranslation = highlightText(translation, query);
+        const highlightedTranscription = transcription ? highlightText(transcription, query) : '';
+        
+        return `
+            <div class="word-item">
+                <div class="word-content">
+                    <div class="word-foreign">${highlightedForeign}</div>
+                    <div class="word-translation">${highlightedTranslation}</div>
+                    ${transcription ? `<div class="word-transcription">[${highlightedTranscription}]</div>` : ''}
+                    ${audio ? `
+                        <div class="word-audio" style="margin-top: 8px;">
+                            <audio controls style="width: 100%; height: 35px;">
+                                <source src="https://memboost.ru${audio.attributes.url}" type="${audio.attributes.mime}">
+                                Ваш браузер не поддерживает аудио элемент.
+                            </audio>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="word-actions">
+                    ${audio ? `
+                        <button class="btn btn-small btn-secondary" onclick="playAudio('${audio.attributes.url}')">🔊</button>
+                    ` : ''}
+                    <button class="btn btn-small btn-secondary" onclick="editWord(${word.id})">✏️</button>
+                    <button class="btn btn-small" onclick="deleteWord(${word.id})">🗑️</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+// Функция для подсветки найденного текста
+function highlightText(text, query) {
+    if (!query || !text) return text;
+    
+    try {
+        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<span class="search-highlight">$1</span>');
+    } catch (error) {
+        return text;
+    }
+}
+
+
+// Функция сброса поиска
+function clearSearch() {
+    const searchInput = document.getElementById('wordSearch');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput) searchInput.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    
+    currentSearchQuery = '';
+    if (allWords.length > 0) {
+        displayWords(allWords);
+    }
+}
+
+// ОБРАБОТЧИКИ СОБЫТИЙ ДЛЯ МОДАЛЬНЫХ ОКОН
+document.getElementById('editWordModal').addEventListener('click', function (event) {
+    if (event.target === this) {
+        closeEditModal();
+    }
+});
+
+document.getElementById('confirmDeleteModal').addEventListener('click', function (event) {
+    if (event.target === this) {
+        closeDeleteModal();
+    }
+});
+
+document.getElementById('editDictionaryModal').addEventListener('click', function (event) {
+    if (event.target === this) {
+        closeEditDictModal();
+    }
+});
+
+document.getElementById('confirmDeleteDictModal').addEventListener('click', function (event) {
+    if (event.target === this) {
+        closeDeleteDictModal();
+    }
+});
+
+// Закрытие по Escape
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        if (document.getElementById('confirmDeleteModal').style.display === 'flex') {
+            closeDeleteModal();
+        }
+        if (document.getElementById('editWordModal').style.display === 'flex') {
+            closeEditModal();
+        }
+        if (document.getElementById('editDictionaryModal').style.display === 'flex') {
+            closeEditDictModal();
+        }
+        if (document.getElementById('confirmDeleteDictModal').style.display === 'flex') {
+            closeDeleteDictModal();
+        }
+    }
+});
+
+// Запуск тренировки из текущего словаря
+// function startTrainingFromDict() {
+//     if (currentDictionaryId) {
+//         window.location.href = `training.html?dict=${currentDictionaryId}`;
+//     } else {
+//         showMessage('Сначала выберите словарь', 'error');
+//     }
+// }
+
+// В main.html замените функцию startTrainingFromDict:
+function startTrainingFromDict() {
+    if (currentDictionaryId) {
+        window.location.href = `select-words.html?dict=${currentDictionaryId}`;
+    } else {
+        showMessage('Сначала выберите словарь', 'error');
+    }
+}
+</script>
+
+
+</body>
+
+</html>
