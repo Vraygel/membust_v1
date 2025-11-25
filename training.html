@@ -93,17 +93,6 @@
             animation: slideUp 0.6s ease-out;
         }
 
-        .setup-screen {
-            text-align: center;
-            display: none;
-        }
-
-        .setup-title {
-            color: #006767;
-            margin-bottom: 30px;
-            font-size: 2rem;
-        }
-
         .game-screen {
             display: none;
         }
@@ -133,7 +122,6 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-						min-height: 55vh;
         }
 
         .column-title {
@@ -187,6 +175,36 @@
             color: white;
         }
 
+        .word-card.inactive {
+            background: #e0e0e0;
+            border-color: #cccccc;
+            color: #999999;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .word-card.inactive:hover {
+            transform: none !important;
+            box-shadow: none;
+            border-color: #cccccc;
+        }
+
+        .word-card.audio-card {
+            background: #279E9D !important;
+            color: white !important;
+            border-color: #279E9D !important;
+        }
+
+        .word-card.audio-card:hover {
+            background: #1f7a79 !important;
+            border-color: #1f7a79 !important;
+        }
+
+        .word-card.audio-card.selected {
+            background: #006767 !important;
+            border-color: #006767 !important;
+        }
+
         @keyframes disappear {
             0% {
                 opacity: 1;
@@ -207,32 +225,31 @@
             }
         }
 
-        .new-words-timer {
+        @keyframes quickShow {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+        .quick-word {
+            animation: quickShow 0.1s ease;
+            background: #97FA9A !important;
+            color: #006767 !important;
+            border-color: #97FA9A !important;
+        }
+
+        .continue-screen {
             text-align: center;
-            padding: 25px;
-            background: #279E9D;
-            color: white;
-            border-radius: 15px;
-            margin-top: 30px;
-            display: none;
+            padding: 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
         }
 
-        .timer-text {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-        }
-
-        .timer-display {
-            font-size: 2.5rem;
-            font-weight: bold;
-        }
-
-        .audio-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 1rem;
-            opacity: 0.8;
+        .continue-title {
+            color: #006767;
+            margin-bottom: 30px;
+            font-size: 2rem;
         }
 
         .loading-screen {
@@ -305,7 +322,7 @@
 
                 <div class="game-field">
                     <div class="words-column">
-                        <div class="column-title">Иностранные слова</div>
+                        <div class="column-title" id="foreignTitle">Иностранные слова</div>
                         <div id="foreignWords" class="words-column">
                             <!-- Слова будут здесь -->
                         </div>
@@ -318,11 +335,21 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div id="newWordsTimer" class="new-words-timer">
-                    <div class="timer-text">Новые слова появятся через:</div>
-                    <div class="timer-display" id="timerDisplay">10</div>
+            <!-- Экран продолжения -->
+            <div id="continueScreen" class="training-screen continue-screen" style="display: none;">
+                <h2 class="continue-title">Первый этап завершен! 🎉</h2>
+                <div style="margin: 30px 0;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🔊</div>
+                    <p style="color: #008080; font-size: 1.2rem; margin-bottom: 30px; line-height: 1.5;">
+                        Правильных ответов: <strong id="stage1Result">0 из 0</strong><br>
+                        Готовы ко второму этапу?
+                    </p>
                 </div>
+                <button class="btn" onclick="startSecondStage()" style="padding: 15px 40px; font-size: 1.1rem;">
+                    🔊 Продолжить аудио-тренировку
+                </button>
             </div>
         </div>
     </div>
@@ -331,7 +358,6 @@
         const API_URL = 'https://memboost.ru/api';
         let jwt = '';
         
-        // Слоты для 5 иностранных слов и 5 переводов
         let foreignSlots = Array(5).fill(null);
         let translationSlots = Array(5).fill(null);
         
@@ -345,7 +371,8 @@
 
         let allTrainingWords = [];
         let availableWords = [];
-        let activeTimers = []; // Для хранения активных таймеров
+        let activeTimers = [];
+        let currentStage = 1; // 1 - первый этап, 2 - второй этап
 
         document.addEventListener('DOMContentLoaded', function() {
             jwt = localStorage.getItem('jwt');
@@ -357,25 +384,21 @@
             }
 
             document.getElementById('userName').textContent = user.username || 'Пользователь';
-            
-            // Начинаем тренировку сразу при загрузке
             startTraining();
         });
 
-        // Функция для очистки всех активных таймеров
         function clearAllTimers() {
             activeTimers.forEach(timerId => clearTimeout(timerId));
             activeTimers = [];
         }
 
         async function startTraining() {
-            // Получаем выбранные слова из sessionStorage
             const selectedWordsJSON = sessionStorage.getItem('selectedTrainingWords');
             
             if (selectedWordsJSON) {
                 try {
                     allTrainingWords = JSON.parse(selectedWordsJSON);
-                    sessionStorage.removeItem('selectedTrainingWords'); // Очищаем после использования
+                    sessionStorage.removeItem('selectedTrainingWords');
                     
                     if (allTrainingWords.length === 0) {
                         alert('Не выбрано ни одного слова для тренировки');
@@ -396,11 +419,9 @@
                     foreignSlots = Array(5).fill(null);
                     translationSlots = Array(5).fill(null);
 
-                    // Скрываем экран загрузки и показываем игровой экран
                     document.getElementById('loadingScreen').style.display = 'none';
                     document.getElementById('gameScreen').style.display = 'block';
                     
-                    // Заполняем начальные слоты
                     fillInitialSlots();
 
                 } catch (error) {
@@ -414,16 +435,9 @@
             }
         }
 
-        function getRandomWords(words, count) {
-            const shuffled = [...words].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
-        }
-
         function fillInitialSlots() {
-            // Берем первые 5 слов для иностранных слотов
             const initialWords = availableWords.splice(0, Math.min(5, availableWords.length));
             
-            // Заполняем иностранные слова
             initialWords.forEach((word, index) => {
                 foreignSlots[index] = {
                     id: word.id,
@@ -433,16 +447,13 @@
                 };
             });
 
-            // Заполняем переводы - берем ТЕ ЖЕ САМЫЕ слова, но перемешиваем их переводы
             const translations = [...initialWords].map(word => ({
                 id: word.id,
                 text: word.attributes.translation
             }));
             
-            // Перемешиваем переводы
             shuffleArray(translations);
             
-            // Заполняем слоты переводов
             translations.forEach((translation, index) => {
                 translationSlots[index] = {
                     id: translation.id,
@@ -462,27 +473,39 @@
             foreignContainer.innerHTML = '';
             translationContainer.innerHTML = '';
 
-            // Отображаем иностранные слова
+            // Отображаем иностранные слова или заглушки
             foreignSlots.forEach((word, index) => {
                 const slot = document.createElement('div');
-                slot.className = 'word-card';
+                slot.className = currentStage === 1 ? 'word-card' : 'word-card audio-card';
                 slot.dataset.slotIndex = index;
                 slot.dataset.type = 'foreign';
                 
                 if (word) {
-                    slot.textContent = word.text;
-                    slot.dataset.wordId = word.id;
-
-                    if (word.audio) {
-                        const audioIndicator = document.createElement('div');
-                        audioIndicator.className = 'audio-indicator';
-                        audioIndicator.textContent = '🔊';
-                        slot.appendChild(audioIndicator);
+                    if (currentStage === 1) {
+                        slot.textContent = word.text;
+                        if (word.audio) {
+                            const audioIndicator = document.createElement('div');
+                            audioIndicator.className = 'audio-indicator';
+                            audioIndicator.textContent = '🔊';
+                            slot.appendChild(audioIndicator);
+                        }
+                    } else {
+                        // Второй этап - показываем заглушку
+                        slot.innerHTML = `
+                            <div style="font-size: 2rem; margin-bottom: 10px;">🔊</div>
+                            <div style="font-size: 0.9rem;">Нажмите чтобы прослушать</div>
+                        `;
                     }
+                    slot.dataset.wordId = word.id;
 
                     slot.addEventListener('click', () => handleWordClick(index, 'foreign'));
                 } else {
-                    slot.style.visibility = 'hidden';
+                    if (availableWords.length === 0) {
+                        slot.textContent = '—';
+                        slot.classList.add('inactive');
+                    } else {
+                        slot.style.visibility = 'hidden';
+                    }
                 }
                 
                 foreignContainer.appendChild(slot);
@@ -500,7 +523,12 @@
                     slot.dataset.wordId = word.id;
                     slot.addEventListener('click', () => handleWordClick(index, 'translation'));
                 } else {
-                    slot.style.visibility = 'hidden';
+                    if (availableWords.length === 0) {
+                        slot.textContent = '—';
+                        slot.classList.add('inactive');
+                    } else {
+                        slot.style.visibility = 'hidden';
+                    }
                 }
                 
                 translationContainer.appendChild(slot);
@@ -508,20 +536,16 @@
         }
 
         function handleWordClick(slotIndex, type) {
-            // Очищаем все активные таймеры при новом выборе
             clearAllTimers();
-            
-            // Сбрасываем неправильную подсветку при новом выборе
             resetIncorrectSelection();
 
             if (type === 'foreign') {
                 const word = foreignSlots[slotIndex];
                 if (!word) return;
 
-                // Проигрываем аудио только для иностранных слов
+                // Всегда проигрываем аудио при клике на иностранное слово
                 playWordAudio(word.id);
                 
-                // Сбрасываем предыдущий выбор иностранного слова
                 if (gameState.selectedForeignSlot !== null) {
                     const prevElement = document.querySelector(`.word-card[data-slot-index="${gameState.selectedForeignSlot}"][data-type="foreign"]`);
                     if (prevElement) prevElement.classList.remove('selected');
@@ -531,15 +555,10 @@
                 const currentElement = document.querySelector(`.word-card[data-slot-index="${slotIndex}"][data-type="foreign"]`);
                 currentElement.classList.add('selected');
                 
-                // Если уже выбран перевод, проверяем пару
-                if (gameState.selectedTranslationSlot !== null) {
-                    checkWordPair(gameState.selectedForeignSlot, gameState.selectedTranslationSlot);
-                }
             } else {
                 const word = translationSlots[slotIndex];
                 if (!word) return;
 
-                // Сбрасываем предыдущий выбор перевода
                 if (gameState.selectedTranslationSlot !== null) {
                     const prevElement = document.querySelector(`.word-card[data-slot-index="${gameState.selectedTranslationSlot}"][data-type="translation"]`);
                     if (prevElement) prevElement.classList.remove('selected');
@@ -549,7 +568,6 @@
                 const currentElement = document.querySelector(`.word-card[data-slot-index="${slotIndex}"][data-type="translation"]`);
                 currentElement.classList.add('selected');
 
-                // Если уже выбрано иностранное слово, проверяем пару
                 if (gameState.selectedForeignSlot !== null) {
                     checkWordPair(gameState.selectedForeignSlot, gameState.selectedTranslationSlot);
                 }
@@ -585,30 +603,36 @@
             const translationElement = document.querySelector(`.word-card[data-slot-index="${translationSlotIndex}"][data-type="translation"]`);
 
             if (isCorrect) {
+                if (currentStage === 2) {
+                    // Во втором этапе показываем слово на 0.1 секунды
+                    showWordTemporarily(foreignElement, foreignWord.text);
+                }
+                
                 foreignElement.classList.add('correct');
                 translationElement.classList.add('correct');
                 
                 gameState.correctAnswers++;
                 gameState.wordsLeft--;
 
-                // Удаляем ОБА слова из слотов после анимации
                 setTimeout(() => {
                     foreignSlots[foreignSlotIndex] = null;
                     translationSlots[translationSlotIndex] = null;
                     
                     resetSelection();
                     
-                    // Заполняем пустые слоты новыми словами
-                    fillEmptySlots();
+                    if (availableWords.length > 0) {
+                        reshuffleAndRefillSlots();
+                    } else {
+                        updateDisplay();
+                    }
                     
                     updateProgress();
-                }, 500);
+                }, currentStage === 1 ? 500 : 100);
 
             } else {
                 foreignElement.classList.add('incorrect');
                 translationElement.classList.add('incorrect');
 
-                // Сохраняем таймер для возможности его очистки
                 const timerId = setTimeout(() => {
                     foreignElement.classList.remove('incorrect', 'selected');
                     translationElement.classList.remove('incorrect', 'selected');
@@ -619,57 +643,69 @@
             }
         }
 
-        function fillEmptySlots() {
-            // Находим пустые слоты
-            const emptyForeignSlots = [];
-            const emptyTranslationSlots = [];
+        function showWordTemporarily(element, wordText) {
+            const originalHTML = element.innerHTML;
+            const originalClasses = element.className;
             
-            for (let i = 0; i < 5; i++) {
-                if (foreignSlots[i] === null) emptyForeignSlots.push(i);
-                if (translationSlots[i] === null) emptyTranslationSlots.push(i);
+            // Показываем слово
+            element.textContent = wordText;
+            element.className = 'word-card quick-word';
+            
+            // Возвращаем заглушку через 100ms
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.className = originalClasses + ' selected';
+            }, 100);
+        }
+
+        function reshuffleAndRefillSlots() {
+            const activeForeignWords = foreignSlots.filter(slot => slot !== null);
+            const activeTranslationWords = translationSlots.filter(slot => slot !== null);
+            
+            const activeWordIds = new Set();
+            activeForeignWords.forEach(word => activeWordIds.add(word.id));
+            activeTranslationWords.forEach(word => activeWordIds.add(word.id));
+            
+            const newWords = [];
+            while (activeForeignWords.length + newWords.length < 5 && availableWords.length > 0) {
+                const word = availableWords.shift();
+                if (!activeWordIds.has(word.id)) {
+                    newWords.push(word);
+                    activeWordIds.add(word.id);
+                }
             }
-
-            // Если есть пустые слоты и есть доступные слова
-            if (emptyForeignSlots.length > 0 && availableWords.length > 0) {
-                // Берем новые слова для заполнения
-                const newWords = availableWords.splice(0, Math.min(emptyForeignSlots.length, availableWords.length));
-                
-                // Заполняем иностранные слова
-                newWords.forEach((word, index) => {
-                    const slotIndex = emptyForeignSlots[index];
-                    if (slotIndex !== undefined) {
-                        foreignSlots[slotIndex] = {
-                            id: word.id,
-                            text: word.attributes.foreign_word,
-                            audio: word.attributes.audio?.data,
-                            slotIndex: slotIndex
-                        };
-                    }
+            
+            let allForeignWords = [...activeForeignWords];
+            let allTranslations = [...activeTranslationWords];
+            
+            newWords.forEach(word => {
+                allForeignWords.push({
+                    id: word.id,
+                    text: word.attributes.foreign_word,
+                    audio: word.attributes.audio?.data
                 });
-
-                // Создаем переводы для новых слов
-                const newTranslations = newWords.map(word => ({
+                
+                allTranslations.push({
                     id: word.id,
                     text: word.attributes.translation
-                }));
-                
-                // Перемешиваем переводы
-                shuffleArray(newTranslations);
-                
-                // Заполняем пустые слоты переводов
-                newTranslations.forEach((translation, index) => {
-                    const slotIndex = emptyTranslationSlots[index];
-                    if (slotIndex !== undefined) {
-                        translationSlots[slotIndex] = {
-                            id: translation.id,
-                            text: translation.text,
-                            slotIndex: slotIndex
-                        };
-                    }
                 });
-
-                updateDisplay();
+            });
+            
+            shuffleArray(allForeignWords);
+            shuffleArray(allTranslations);
+            
+            foreignSlots = Array(5).fill(null);
+            translationSlots = Array(5).fill(null);
+            
+            for (let i = 0; i < Math.min(5, allForeignWords.length); i++) {
+                foreignSlots[i] = allForeignWords[i];
             }
+            
+            for (let i = 0; i < Math.min(5, allTranslations.length); i++) {
+                translationSlots[i] = allTranslations[i];
+            }
+            
+            updateDisplay();
         }
 
         function resetSelection() {
@@ -682,13 +718,52 @@
             document.getElementById('correctCount').textContent = gameState.correctAnswers;
             document.getElementById('totalCount').textContent = gameState.totalWords;
 
-            if (gameState.wordsLeft === 0 && availableWords.length === 0) {
-                setTimeout(() => finishTraining(), 1000);
+            const allSlotsEmpty = foreignSlots.every(slot => slot === null) && 
+                                 translationSlots.every(slot => slot === null);
+            
+            if (allSlotsEmpty && availableWords.length === 0) {
+                if (currentStage === 1) {
+                    finishFirstStage();
+                } else {
+                    finishSecondStage();
+                }
             }
         }
 
-        function finishTraining() {
-            alert(`Тренировка завершена!\n\nПравильных ответов: ${gameState.correctAnswers} из ${gameState.totalWords}\nУспешность: ${Math.round((gameState.correctAnswers / gameState.totalWords) * 100)}%`);
+        function finishFirstStage() {
+            document.getElementById('stage1Result').textContent = 
+                `${gameState.correctAnswers} из ${gameState.totalWords}`;
+            
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('continueScreen').style.display = 'block';
+        }
+
+        function startSecondStage() {
+            currentStage = 2;
+            
+            availableWords = [...allTrainingWords];
+            gameState = {
+                totalWords: allTrainingWords.length,
+                wordsLeft: allTrainingWords.length,
+                correctAnswers: 0,
+                selectedForeignSlot: null,
+                selectedTranslationSlot: null
+            };
+
+            foreignSlots = Array(5).fill(null);
+            translationSlots = Array(5).fill(null);
+
+            document.getElementById('continueScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            document.getElementById('foreignTitle').textContent = 'Аудио слова';
+            
+            fillInitialSlots();
+        }
+
+        function finishSecondStage() {
+            const successRate = Math.round((gameState.correctAnswers / gameState.totalWords) * 100);
+            alert(`Тренировка завершена!\n\nПервый этап: ${allTrainingWords.length} слов\nВторой этап: ${gameState.correctAnswers} из ${gameState.totalWords} правильных ответов\nОбщая успешность: ${successRate}%`);
             goBack();
         }
 
@@ -701,7 +776,6 @@
         }
 
         function goBack() {
-            // Очищаем таймеры при переходе назад
             clearAllTimers();
             window.location.href = 'main.html';
         }
